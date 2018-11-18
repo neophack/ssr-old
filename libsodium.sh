@@ -21,5 +21,5 @@ elif command -v yum >/dev/null 2>&1;then
     ldconfig
     rm -rf /tmp/libsodium-1.0.16
 elif command -v pacman >/dev/null 2>&1;then
-    pacman -S libsodium
+    pacman -S libsodium --noconfirm
 fi
