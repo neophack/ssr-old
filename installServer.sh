@@ -12,6 +12,8 @@ if ! command -v tmux >/dev/null 2>&1;then
         apt-get install -y tmux
     elif command -v yum >/dev/null 2>&1;then
         yum install -y tmux
+    elif command -v pacman >/dev/null 2>&1;then
+        pacman -S tmux --noconfirm
     elif command -v brew >/dev/null 2>&1;then
         brew install tmux
     fi
