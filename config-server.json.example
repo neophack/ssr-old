@@ -1,8 +1,11 @@
 {
     "server": "",
     "server_ipv6": "::",
-    "server_port": 8500,
-    "password": "8500",
+    "port_password":{
+        "8500":"8500",
+        "8600":"8600",
+        "8700":"8700",
+    },
 
     "local_address": "127.0.0.1",
     "local_port": 1082,
