@@ -7,6 +7,20 @@ if (($EUID!=0));then
     exit 1
 fi
 
+if ! command -v tmux >/dev/null 2>&1;then
+    if command -v apt-get >/dev/null 2>&1;then
+        apt-get install -y tmux
+    elif command -v yum >/dev/null 2>&1;then
+        yum install -y tmux
+    elif command -v brew >/dev/null 2>&1;then
+        brew install tmux
+    fi
+fi
+
+if !command -v tmux >/dev/null 2>&1;then
+    echo "need tmux"
+    exit 1
+fi
 sed "s|ROOT|$root|g" ssrserver >/usr/local/bin/ssrserver
 chmod +x /usr/local/bin/ssrserver
 
