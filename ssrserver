@@ -1,0 +1,73 @@
+#!/bin/bash
+
+usage(){
+    cat<<-EOF
+	Usage: $(basename $0) CMD
+	CMD:
+	    start
+	    stop
+	    status
+	    config
+	    em
+	EOF
+    exit 1
+}
+
+start(){
+    tmux new-session -d -s "ssr server" python ROOT/server.py -c ROOT/config-server.json
+}
+
+stop(){
+    tmux kill-session -t "ssr server"
+}
+
+config(){
+    editor=vi
+    if command -v vim >/dev/null 2>&1;then
+        editor=vim
+    fi
+    if [ ! -e ROOT/config-server.json ];then
+        cp ROOT/config-server.json.example ROOT/config-server.json
+    fi
+    $editor ROOT/config-server.json
+    #TODO restart if needed
+}
+
+editMyself(){
+    editor=vi
+    if command -v vim >/dev/null 2>&1;then
+        editor=vim
+    fi
+    $editor ROOT/ssrserver
+}
+
+status(){
+    echo
+}
+
+cmd=$1
+
+case $cmd in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    config)
+        config
+        ;;
+    em)
+        editMyself
+        ;;
+    *)
+        usage
+        ;;
+esac
