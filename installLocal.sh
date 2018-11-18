@@ -41,6 +41,9 @@ if ! command -v python >/dev/null 2>&1;then
     exit 1
 fi
 
+echo "install libsodium..."
+bash libsodium.sh
+
 sed "s|ROOT|$root|g" ssrlocal >/usr/local/bin/ssrlocal
 chmod +x /usr/local/bin/ssrlocal
 
