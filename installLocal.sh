@@ -24,6 +24,23 @@ if ! command -v tmux >/dev/null 2>&1;then
     exit 1
 fi
 
+if ! command -v python >/dev/null 2>&1;then
+    if command -v apt-get >/dev/null 2>&1;then
+        apt-get install -y python
+    elif command -v yum >/dev/null 2>&1;then
+        yum install -y python
+    elif command -v pacman >/dev/null 2>&1;then
+        pacman -S python --noconfirm
+    elif command -v brew >/dev/null 2>&1;then
+        brew install python
+    fi
+fi
+
+if ! command -v python >/dev/null 2>&1;then
+    echo "need python"
+    exit 1
+fi
+
 sed "s|ROOT|$root|g" ssrlocal >/usr/local/bin/ssrlocal
 chmod +x /usr/local/bin/ssrlocal
 
