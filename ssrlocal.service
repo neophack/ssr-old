@@ -5,8 +5,10 @@ After=network.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/bin/tmux new-session -d -s "ssr local" -n "ssr window" /usr/bin/python ROOT/local.py -c ROOT/config-local.json
-ExecStop=/usr/bin/tmux kill-session -t 'ssr local'
+#ExecStart=/usr/bin/tmux new-session -d -s "ssr local" -n "ssr window" /usr/bin/python ROOT/local.py -c ROOT/config-local.json
+#ExecStop=/usr/bin/tmux kill-session -t 'ssr local'
+ExecStart=SSRLOCAL start
+ExecStop=SSRLOCAL stop
 
 [Install]
 WantedBy=multi-user.target
