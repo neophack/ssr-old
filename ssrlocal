@@ -1,4 +1,9 @@
 #!/bin/bash
+root="$(cd $(dirname $(realpath ${BASH_SOURCE})) && pwd)"
+cd "$root"
+
+user=${SUDO_USER:-$(whoami)}
+home=$(eval echo ~$user)
 
 usage(){
     cat<<-EOF
@@ -14,11 +19,29 @@ usage(){
 }
 
 start(){
-    tmux new-session -d -s "ssr local" python ROOT/local.py -c ROOT/config-local.json
+    #tmux new-session -d -s "ssr local" python ROOT/local.py -c ROOT/config-local.json
+    case $(uname) in
+        Linux)
+            #TODO
+            echo
+            ;;
+        Darwin)
+            launchctl load -w $home/Library/LaunchAgents/ssrlocal.plist
+            ;;
+    esac
 }
 
 stop(){
-    tmux kill-session -t "ssr local"
+    #tmux kill-session -t "ssr local"
+    case $(uname) in
+        Linux)
+            #TODO
+            echo
+            ;;
+        Darwin)
+            launchctl unload -w $home/Library/LaunchAgents/ssrlocal.plist
+            ;;
+    esac
 }
 
 config(){
@@ -26,10 +49,10 @@ config(){
     if command -v vim >/dev/null 2>&1;then
         editor=vim
     fi
-    if [ ! -e ROOT/config-local.json ];then
-        cp ROOT/config-local.json.example ROOT/config-local.json
+    if [ ! -e $root/config-local.json ];then
+        cp $root/config-local.json.example $root/config-local.json
     fi
-    $editor ROOT/config-local.json
+    $editor $root/config-local.json
     #TODO restart if needed
 }
 
@@ -38,7 +61,7 @@ editMyself(){
     if command -v vim >/dev/null 2>&1;then
         editor=vim
     fi
-    $editor ROOT/ssrlocal
+    $editor $root/ssrlocal
 }
 
 status(){

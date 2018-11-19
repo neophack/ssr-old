@@ -3,9 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>ssr.local</string>
-    <key>KeepAlive</key>
-    <true/>
+    <string>ssrlocal</string>
     <key>ProgramArguments</key>
     <array>
         <string>python</string>

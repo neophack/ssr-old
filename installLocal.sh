@@ -62,8 +62,9 @@ install(){
     echo "install libsodium..."
     bash libsodium.sh
 
-    sed "s|ROOT|$root|g" ssrlocal >$DEST_BIN_DIR/ssrlocal
-    chmod +x $DEST_BIN_DIR/ssrlocal
+    # sed "s|ROOT|$root|g" ssrlocal >$DEST_BIN_DIR/ssrlocal
+    # chmod +x $DEST_BIN_DIR/ssrlocal
+    ln -sf $root/ssrlocal $DEST_BIN_DIR/ssrlocal
 
     case $(uname) in
         Linux)
