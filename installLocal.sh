@@ -2,6 +2,9 @@
 root="$(cd $(dirname $BASH_SOURCE) && pwd)"
 cd "$root"
 
+user=${SUDO_USER:-$(whoami)}
+home=$(eval echo ~$user)
+
 DEST_BIN_DIR=/usr/local/bin
 check(){
     if (($EUID!=0));then
@@ -72,15 +75,29 @@ install(){
                 systemctl start ssrlocal
             fi
             ;;
+        Darwin)
+            read -p "install ssrlocal plist? [Y/n] " ser
+            if [[ "$ser" != [nN] ]];then
+                sed -e "s|ROOT|$root|g" ssrlocal.plist > $home/Library/LaunchAgents/ssrlocal.plist
+            fi
+            ;;
     esac
 }
 
 uninstall(){
     check
     rm $DEST_BIN_DIR/ssrlocal
-    systemctl stop ssrlocal
-    systemctl disable ssrlocal
-    rm /etc/systemd/system/ssrlocal.service
+    case $(uname) in
+        Linux)
+            systemctl stop ssrlocal
+            systemctl disable ssrlocal
+            rm /etc/systemd/system/ssrlocal.service
+            ;;
+        Darwin)
+            launchctl unload $home/Library/LaunchAgents/ssrlocal.plist
+            rm $home/Library/LaunchAgents/ssrlocal.plist
+            ;;
+    esac
 }
 
 cmd=$1

@@ -3,6 +3,7 @@ if (($EUID!=0));then
     echo "Need run as root."
     exit 1
 fi
+user=${SUDO_USER:-(whoami)}
 if command -v apt-get >/dev/null 2>&1;then
     apt-get install build-essential -y
     cd /tmp
@@ -22,4 +23,8 @@ elif command -v yum >/dev/null 2>&1;then
     rm -rf /tmp/libsodium-1.0.16
 elif command -v pacman >/dev/null 2>&1;then
     pacman -S libsodium --noconfirm
+elif command -v brew >/dev/null 2>&1;then
+    if ! brew list |grep -q libsodium;then
+        su $user -c 'brew install libsodium'
+    fi
 fi
