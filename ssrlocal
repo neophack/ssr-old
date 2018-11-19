@@ -22,8 +22,11 @@ start(){
     #tmux new-session -d -s "ssr local" python ROOT/local.py -c ROOT/config-local.json
     case $(uname) in
         Linux)
-            #TODO
-            echo
+            if (($EUID!=0));then
+                sudo systemctl start ssrlocal
+            else
+                systemctl start ssrlocal
+            fi
             ;;
         Darwin)
             launchctl load -w $home/Library/LaunchAgents/ssrlocal.plist
@@ -35,8 +38,11 @@ stop(){
     #tmux kill-session -t "ssr local"
     case $(uname) in
         Linux)
-            #TODO
-            echo
+            if (($EUID!=0));then
+                sudo systemctl stop ssrlocal
+            else
+                systemctl stop ssrlocal
+            fi
             ;;
         Darwin)
             launchctl unload -w $home/Library/LaunchAgents/ssrlocal.plist
@@ -65,7 +71,14 @@ editMyself(){
 }
 
 status(){
-    echo
+    case $(uname) in
+        Linux)
+            systemctl status ssrlocal
+            ;;
+        Darwin)
+            echo "TODO"
+            ;;
+    esac
 }
 
 cmd=$1

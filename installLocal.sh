@@ -70,7 +70,7 @@ install(){
         Linux)
             read -p "install ssrlocal service? [Y/n] " ser
             if [[ $ser != [nN] ]];then
-                sed -e "s|ROOT|$root|g" -e "s|SSRLOCAL|$DEST_BIN_DIR/ssrlocal|g" ssrlocal.service > /etc/systemd/system/ssrlocal.service
+                sed -e "s|ROOT|$root|g" ssrlocal.service > /etc/systemd/system/ssrlocal.service
                 systemctl daemon-reload
                 systemctl enable ssrlocal
                 systemctl start ssrlocal
