@@ -57,7 +57,7 @@ install(){
     sed "s|ROOT|$root|g" ssrserver >$DEST_BIN_DIR/ssrserver
     chmod +x $DEST_BIN_DIR/ssrserver
 
-    sed -e "s|ROOT|$root|g" ssrserver.service > /etc/systemd/system/ssrserver.service
+    sed -e "s|ROOT|$root|g" -e "s|PYTHON|$(which python)|g" ssrserver.service > /etc/systemd/system/ssrserver.service
     systemctl enable ssrserver
     echo "install libsodium..."
     bash libsodium.sh
