@@ -25,22 +25,22 @@ usage(){
 
 install(){
     check
-    if ! command -v tmux >/dev/null 2>&1;then
-        if command -v apt-get >/dev/null 2>&1;then
-            apt-get install -y tmux
-        elif command -v yum >/dev/null 2>&1;then
-            yum install -y tmux
-        elif command -v pacman >/dev/null 2>&1;then
-            pacman -S tmux --noconfirm
-        elif command -v brew >/dev/null 2>&1;then
-            brew install tmux
-        fi
-    fi
+    # if ! command -v tmux >/dev/null 2>&1;then
+    #     if command -v apt-get >/dev/null 2>&1;then
+    #         apt-get install -y tmux
+    #     elif command -v yum >/dev/null 2>&1;then
+    #         yum install -y tmux
+    #     elif command -v pacman >/dev/null 2>&1;then
+    #         pacman -S tmux --noconfirm
+    #     elif command -v brew >/dev/null 2>&1;then
+    #         brew install tmux
+    #     fi
+    # fi
 
-    if ! command -v tmux >/dev/null 2>&1;then
-        echo "need tmux"
-        exit 1
-    fi
+    # if ! command -v tmux >/dev/null 2>&1;then
+    #     echo "need tmux"
+    #     exit 1
+    # fi
 
     if ! command -v python >/dev/null 2>&1;then
         if command -v apt-get >/dev/null 2>&1;then
@@ -70,7 +70,7 @@ install(){
         Linux)
             read -p "install ssrlocal service? [Y/n] " ser
             if [[ $ser != [nN] ]];then
-                sed -e "s|ROOT|$root|g" ssrlocal.service > /etc/systemd/system/ssrlocal.service
+                sed -e "s|ROOT|$root|g" -e "s|PYTHON|$(which python)|g" ssrlocal.service > /etc/systemd/system/ssrlocal.service
                 systemctl daemon-reload
                 systemctl enable ssrlocal
                 systemctl start ssrlocal

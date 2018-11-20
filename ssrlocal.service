@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=python ROOT/local.py -c ROOT/config-local.json
+ExecStart=PYTHON ROOT/local.py -c ROOT/config-local.json
 
 [Install]
 WantedBy=multi-user.target
