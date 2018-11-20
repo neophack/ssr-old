@@ -14,11 +14,13 @@ usage(){
 }
 
 start(){
-    tmux new-session -d -s "ssr server" python ROOT/server.py -c ROOT/config-server.json
+    #tmux new-session -d -s "ssr server" python ROOT/server.py -c ROOT/config-server.json
+    systemctl start ssrserver
 }
 
 stop(){
-    tmux kill-session -t "ssr server"
+    #tmux kill-session -t "ssr server"
+    systemctl stop ssrserver
 }
 
 config(){
@@ -42,7 +44,7 @@ editMyself(){
 }
 
 status(){
-    echo
+    systemctl status ssrserver
 }
 
 cmd=$1
