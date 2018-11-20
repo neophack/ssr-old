@@ -23,24 +23,29 @@ usage(){
     exit 1
 }
 
+installBrewLibsodium(){
+    #install homebrew then install lisodium on MacOS
+    cp config-local.json.example config-local.json
+    vi config-local.json
+    python local.py -c config-local.json >/dev/null 2>&1&
+    PID=$!
+
+    #check proxy
+    #proxyServer=$(grep '"server"' $Root/runtime/config.json | awk -F\" '{print $4}')
+    #curlProxy=$(curl -x socks5://localhost:1080 myip.ipip.net  | grep -oE '([0-9]+\.){3}[0-9]+')
+
+    export ALL_PROXY=socks5://localhost:1080
+    if ! command -v brew;then
+        /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    fi
+    if ! brew list libsodium;then
+        echo "Install libsodium"
+        brew install libsodium
+    fi
+    kill -9 $PID
+}
 install(){
     check
-    # if ! command -v tmux >/dev/null 2>&1;then
-    #     if command -v apt-get >/dev/null 2>&1;then
-    #         apt-get install -y tmux
-    #     elif command -v yum >/dev/null 2>&1;then
-    #         yum install -y tmux
-    #     elif command -v pacman >/dev/null 2>&1;then
-    #         pacman -S tmux --noconfirm
-    #     elif command -v brew >/dev/null 2>&1;then
-    #         brew install tmux
-    #     fi
-    # fi
-
-    # if ! command -v tmux >/dev/null 2>&1;then
-    #     echo "need tmux"
-    #     exit 1
-    # fi
 
     if ! command -v python >/dev/null 2>&1;then
         if command -v apt-get >/dev/null 2>&1;then
@@ -78,6 +83,7 @@ install(){
             fi
             ;;
         Darwin)
+            installBrewLibsodium
             read -p "install ssrlocal plist? [Y/n] " ser
             if [[ "$ser" != [nN] ]];then
                 sed -e "s|ROOT|$root|g" ssrlocal.plist > $home/Library/LaunchAgents/ssrlocal.plist

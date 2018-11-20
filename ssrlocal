@@ -76,7 +76,7 @@ status(){
             systemctl status ssrlocal
             ;;
         Darwin)
-            echo "TODO"
+            launchctl list | grep ssrlocal
             ;;
     esac
 }
