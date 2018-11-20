@@ -35,7 +35,7 @@ installBrewLibsodium(){
     #curlProxy=$(curl -x socks5://localhost:1080 myip.ipip.net  | grep -oE '([0-9]+\.){3}[0-9]+')
 
     export ALL_PROXY=socks5://localhost:1080
-    if ! command -v brew;then
+    if ! command -v brew >/dev/null 2>&1;then
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     fi
     if ! brew list libsodium >/dev/null 2>&1;then
@@ -78,10 +78,7 @@ install(){
             installBrewLibsodium
             ln -sf $root/ssrlocal $DEST_BIN_DIR/ssrlocal
             ln -sf $root/ssrp $DEST_BIN_DIR/ssrp
-            read -p "install ssrlocal plist? [Y/n] " ser
-            if [[ "$ser" != [nN] ]];then
-                sed -e "s|ROOT|$root|g" ssrlocal.plist > $home/Library/LaunchAgents/ssrlocal.plist
-            fi
+            sed -e "s|ROOT|$root|g" ssrlocal.plist > $home/Library/LaunchAgents/ssrlocal.plist
             ;;
     esac
 }
