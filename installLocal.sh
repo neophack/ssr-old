@@ -65,6 +65,7 @@ install(){
     # sed "s|ROOT|$root|g" ssrlocal >$DEST_BIN_DIR/ssrlocal
     # chmod +x $DEST_BIN_DIR/ssrlocal
     ln -sf $root/ssrlocal $DEST_BIN_DIR/ssrlocal
+    ln -sf $root/ssrp $DEST_BIN_DIR/ssrp
 
     case $(uname) in
         Linux)
