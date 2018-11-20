@@ -7,8 +7,8 @@ home=$(eval echo ~$user)
 
 DEST_BIN_DIR=/usr/local/bin
 check(){
-    if (($EUID!=0));then
-        echo "Need run as root"
+    if (($EUID==0));then
+        echo "Dn't need run as root"
         exit 1
     fi
 }
@@ -57,26 +57,27 @@ install(){
         exit 1
     fi
 
-    echo "install libsodium..."
-    bash libsodium.sh
 
-    # sed "s|ROOT|$root|g" ssrlocal >$DEST_BIN_DIR/ssrlocal
-    # chmod +x $DEST_BIN_DIR/ssrlocal
-    ln -sf $root/ssrlocal $DEST_BIN_DIR/ssrlocal
-    ln -sf $root/ssrp $DEST_BIN_DIR/ssrp
 
     case $(uname) in
         Linux)
-            read -p "install ssrlocal service? [Y/n] " ser
-            if [[ $ser != [nN] ]];then
-                sed -e "s|ROOT|$root|g" -e "s|PYTHON|$(which python)|g" ssrlocal.service > /etc/systemd/system/ssrlocal.service
-                systemctl daemon-reload
-                systemctl enable ssrlocal
-                systemctl start ssrlocal
-            fi
+            #TODO all need root
+            cmds=$(cat<<-EOF
+			sed -e "s|ROOT|$root|g" -e "s|PYTHON|$(which python)|g" ssrlocal.service > /etc/systemd/system/ssrlocal.service
+			systemctl daemon-reload
+			systemctl enable ssrlocal
+			systemctl start ssrlocal
+			echo "run libsodium.sh to run libsodium if needed."
+			ln -sf $root/ssrlocal $DEST_BIN_DIR/ssrlocal
+			ln -sf $root/ssrp $DEST_BIN_DIR/ssrp
+			EOF
+)
+            sudo sh -c "$cmds"
             ;;
         Darwin)
             installBrewLibsodium
+            ln -sf $root/ssrlocal $DEST_BIN_DIR/ssrlocal
+            ln -sf $root/ssrp $DEST_BIN_DIR/ssrp
             read -p "install ssrlocal plist? [Y/n] " ser
             if [[ "$ser" != [nN] ]];then
                 sed -e "s|ROOT|$root|g" ssrlocal.plist > $home/Library/LaunchAgents/ssrlocal.plist
@@ -87,16 +88,22 @@ install(){
 
 uninstall(){
     check
-    rm $DEST_BIN_DIR/ssrlocal
     case $(uname) in
         Linux)
-            systemctl stop ssrlocal
-            systemctl disable ssrlocal
-            rm /etc/systemd/system/ssrlocal.service
+            #TODO all need root
+            cmds=$(cat<<-EOF
+			systemctl stop ssrlocal
+			systemctl disable ssrlocal
+			rm /etc/systemd/system/ssrlocal.service
+			rm $DEST_BIN_DIR/ssrlocal
+			EOF
+)
+            sudo sh -c "$cmds"
             ;;
         Darwin)
             launchctl unload $home/Library/LaunchAgents/ssrlocal.plist
             rm $home/Library/LaunchAgents/ssrlocal.plist
+            rm $DEST_BIN_DIR/ssrlocal
             ;;
     esac
 }
