@@ -24,10 +24,13 @@ usage(){
 }
 
 installBrewLibsodium(){
-    cp libsodium-1.0.16.tar.gz /tmp
-    cd /tmp
-    tar xf libsodium-1.0.16.tar.gz && cd libsodium-1.0.16
-    ./configure && make -j2 && sudo make install
+    if ! ls /usr/local/lib/libsodium* >/dev/null 2>&1;then
+        cp libsodium-1.0.16.tar.gz /tmp
+        cd /tmp
+        tar xf libsodium-1.0.16.tar.gz && cd libsodium-1.0.16
+        ./configure && make -j2 && sudo make install
+        cd - >/dev/null
+    fi
     #install homebrew then install lisodium on MacOS
     cp config-local.json.example config-local.json
     vi config-local.json
@@ -82,6 +85,9 @@ install(){
             installBrewLibsodium
             ln -sf $root/ssrlocal $DEST_BIN_DIR/ssrlocal
             ln -sf $root/ssrp $DEST_BIN_DIR/ssrp
+            if [ ! -d $home/Library/LaunchAgents ];then
+                mkdir -p $home/Library/LaunchAgents
+            fi
             sed -e "s|ROOT|$root|g" ssrlocal.plist > $home/Library/LaunchAgents/ssrlocal.plist
             ;;
     esac
