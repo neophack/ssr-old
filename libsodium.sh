@@ -24,9 +24,5 @@ if ! ls /usr/local/lib/libsodium* >/dev/null 2>&1;then
         rm -rf /tmp/libsodium-1.0.16
     elif command -v pacman >/dev/null 2>&1;then
         pacman -S libsodium --noconfirm
-    elif command -v brew >/dev/null 2>&1;then
-        if ! brew list |grep -q libsodium;then
-            su $user -c 'brew install libsodium'
-        fi
     fi
 fi

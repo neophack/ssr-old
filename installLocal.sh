@@ -24,6 +24,10 @@ usage(){
 }
 
 installBrewLibsodium(){
+    cp libsodium-1.0.16.tar.gz /tmp
+    cd /tmp
+    tar xf libsodium-1.0.16.tar.gz && cd libsodium-1.0.16
+    ./configure && make -j2 && sudo make install
     #install homebrew then install lisodium on MacOS
     cp config-local.json.example config-local.json
     vi config-local.json
@@ -38,10 +42,10 @@ installBrewLibsodium(){
     if ! command -v brew >/dev/null 2>&1;then
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     fi
-    if ! brew list libsodium >/dev/null 2>&1;then
-        echo "Install libsodium"
-        brew install libsodium
-    fi
+    # if ! brew list libsodium >/dev/null 2>&1;then
+    #     echo "Install libsodium"
+    #     brew install libsodium
+    # fi
     if ! brew list coreutils >/dev/null 2>&1;then
         echo "install coreutils"
         brew install coreutils
