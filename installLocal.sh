@@ -38,26 +38,19 @@ installBrewLibsodium(){
     if ! command -v brew;then
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     fi
-    if ! brew list libsodium;then
+    if ! brew list libsodium >/dev/null 2>&1;then
         echo "Install libsodium"
         brew install libsodium
     fi
+    if ! brew list coreutils >/dev/null 2>&1;then
+        echo "install coreutils"
+        brew install coreutils
+    fi
     kill -9 $PID
 }
+
 install(){
     check
-
-    if ! command -v python >/dev/null 2>&1;then
-        if command -v apt-get >/dev/null 2>&1;then
-            apt-get install -y python
-        elif command -v yum >/dev/null 2>&1;then
-            yum install -y python
-        elif command -v pacman >/dev/null 2>&1;then
-            pacman -S python --noconfirm
-        elif command -v brew >/dev/null 2>&1;then
-            brew install python
-        fi
-    fi
 
     if ! command -v python >/dev/null 2>&1;then
         echo "need python"
