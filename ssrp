@@ -20,7 +20,7 @@ run(){
         loc="$(which $i)"
         echo "script path: $loc"
         if [ -z "$loc" ];then
-            echo "Cann't find $loc."
+            echo "Cann't find $i."
             continue
         fi
         if grep -qE "^[[:blank:]]*(function )?$cmd[[:blank:]]*\([[:blank:]]*\)[[:blank:]]*{[[:blank:]]*$" "$loc";then
