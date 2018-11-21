@@ -29,7 +29,7 @@ installBrewLibsodium(){
         cd /tmp
         tar xf libsodium-1.0.16.tar.gz && cd libsodium-1.0.16
         ./configure && make -j2 && sudo make install
-        cd - >/dev/null
+        cd "$root"
     fi
     #install homebrew then install lisodium on MacOS
     cp config-local.json.example config-local.json
