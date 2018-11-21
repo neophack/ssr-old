@@ -43,12 +43,17 @@ installBrewLibsodium(){
 
     export ALL_PROXY=socks5://localhost:1080
     if ! command -v brew >/dev/null 2>&1;then
+        echo "Install homebrew..."
         /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     fi
     # if ! brew list libsodium >/dev/null 2>&1;then
     #     echo "Install libsodium"
     #     brew install libsodium
     # fi
+    if ! command -v brew >/dev/null 2>&1;then
+        echo "Install homebrew failed."
+        exit 1
+    fi
     if ! brew list coreutils >/dev/null 2>&1;then
         echo "install coreutils"
         brew install coreutils
