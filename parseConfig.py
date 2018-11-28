@@ -1,14 +1,23 @@
 #!/usr/bin/env python
-import json
-import sys
 
-def main(key):
+import argparse
+import json
+
+def main():
+    parser = argparse.ArgumentParser(description="parse config.json file")
+
+    parser.add_argument("key",help="specify key in config.json")
+
+    arg = parser.parse_args()
+
     with open('config-local.json') as f:
         data = f.read()
     js = json.loads(data)
-    print(js[key])
-    return js[key]
+
+    try:
+        print(js[arg.key])
+    except KeyError:
+        pass
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        main(sys.argv[1])
+    main()

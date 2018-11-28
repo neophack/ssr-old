@@ -5,6 +5,10 @@ cd "$root"
 user=${SUDO_USER:-$(whoami)}
 home=$(eval echo ~$user)
 
+red=$(tput setaf 1)
+green=$(tput setaf 2)
+reset=$(tput sgr0)
+
 usage(){
     cat<<-EOF
 	Usage: $(basename $0) CMD
@@ -67,7 +71,31 @@ ping(){
     server="$(python parseConfig.py server)"
     if [ -n "$server" ];then
         echo "Try to $(tput bold)ping$(tput sgr0) server: $(tput setaf 1)$server$(tput sgr0)..."
-        /usr/bin/ping "$server"
+        /usr/bin/ping -c 8 "$server"
+    fi
+}
+
+check(){
+    server="$(python parseConfig.py server)"
+    if echo "$server" | grep -qE '^[0-9]+(\.[0-9]+){3}$';then
+        echo "Server: ${green}$server${reset} is ip address"
+        serverIP="$server"
+        echo "Server ip: ${green}$serverIP${reset}"
+    else
+        echo -e "Server: ${green}$server${reset} is domain name,\ntry to lookup its ip address..."
+        serverIP="$(nslookup $server | perl -ne 'print $1 if/^Address\s*:\s*(\d+(\.\d+){3})$/')"
+        echo "Get server ip by nslookup: ${green}$serverIP${reset}"
+    fi
+    echo "-------------------------------------------"
+    localPort="$(python parseConfig.py local_port)"
+    echo "Local port: ${green}$localPort${reset}"
+    serverFromCurl="$(curl -sx socks5://localhost:$localPort cip.cc | perl -ne 'print $1 if /^\s*IP\s*:\s*(\d+(\.\d+){3})\s*$/')"
+    echo "Server from curl: ${green}$serverFromCurl${reset}"
+    echo "-------------------------------------------"
+    if [[ "$serverIP" == "$serverFromCurl" ]];then
+        echo "${green}OK.${reset}"
+    else
+        echo "${red}Failed.${reset}"
     fi
 }
 
@@ -114,6 +142,9 @@ case $cmd in
         ;;
     ping)
         ping
+        ;;
+    check)
+        check
         ;;
     *)
         usage
