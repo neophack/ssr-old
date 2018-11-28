@@ -14,6 +14,7 @@ usage(){
 	    status
 	    config
 	    em
+	    ping
 	EOF
     exit 1
 }
@@ -62,6 +63,14 @@ config(){
     #TODO restart if needed
 }
 
+ping(){
+    server="$(python parseConfig.py server)"
+    if [ -n "$server" ];then
+        echo "Try to $(tput bold)ping$(tput sgr0) server: $(tput setaf 1)$server$(tput sgr0)..."
+        /usr/bin/ping "$server"
+    fi
+}
+
 editMyself(){
     editor=vi
     if command -v vim >/dev/null 2>&1;then
@@ -102,6 +111,9 @@ case $cmd in
         ;;
     em)
         editMyself
+        ;;
+    ping)
+        ping
         ;;
     *)
         usage
