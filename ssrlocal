@@ -114,7 +114,7 @@ modify(){
 }
 
 ping(){
-    server="$(python parseConfig.py server)"
+    server="$(python parseConfig.py config-local.json server)"
     if [ -n "$server" ];then
         echo "Try to $(tput bold)ping$(tput sgr0) server: $(tput setaf 1)$server$(tput sgr0)..."
         /usr/bin/ping -c 8 "$server"
