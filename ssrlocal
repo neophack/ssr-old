@@ -9,6 +9,10 @@ red=$(tput setaf 1)
 green=$(tput setaf 2)
 reset=$(tput sgr0)
 
+exit_file_not_exist=1
+exit_changed=2
+exit_not_changed=3
+
 usage(){
     cat<<-EOF
 	Usage: $(basename $0) CMD
@@ -19,6 +23,7 @@ usage(){
 	    config
 	    em
 	    ping
+	    check
 	EOF
     exit 1
 }
@@ -56,15 +61,56 @@ stop(){
 }
 
 config(){
-    editor=vi
-    if command -v vim >/dev/null 2>&1;then
-        editor=vim
-    fi
     if [ ! -e $root/config-local.json ];then
         cp $root/config-local.json.example $root/config-local.json
     fi
-    $editor $root/config-local.json
-    #TODO restart if needed
+    modify "$root/config-local.json"
+    case $? in
+        $exit_file_not_exist)
+            echo "config file not exist"
+            ;;
+        $exit_changed)
+            echo "Config file changed,restart service..."
+            stop
+            start
+            echo "Done."
+            ;;
+        $exit_not_changed)
+            echo "Nothing happened."
+            ;;
+    esac
+}
+
+modify(){
+    f=$1
+    if [ -z "$f" ];then
+        return $exit_file_not_exist
+    fi
+    editory=vi
+    if command -v vim >/dev/null 2>&1;then
+        editor=vim
+    fi
+    case $(uname) in
+        Linux)
+            STAT=stat
+            ;;
+        Darwin)
+            STAT='stat -x'
+            ;;
+    esac
+    #get mtime
+    mtime_before="$($STAT $f | grep Modify)"
+    $editor $f
+    mtime_after="$($STAT $f | grep Modify)"
+    if [[ ${mtime_before} != ${mtime_after} ]];then
+        # echo "config file changed,restart..."
+        # stop
+        # start
+        return $exit_changed
+    else
+        # echo "Nothing happened."
+        return $exit_not_changed
+    fi
 }
 
 ping(){
@@ -76,7 +122,12 @@ ping(){
 }
 
 check(){
-    server="$(python parseConfig.py server)"
+    server="$(python parseConfig.py config-local.json server 2>/dev/null)"
+    localPort="$(python parseConfig.py config-local.json local_port 2>/dev/null)"
+    if [ -z "$server" ];then
+        echo "Canot find out server in config-local.json"
+        return 1
+    fi
     if echo "$server" | grep -qE '^[0-9]+(\.[0-9]+){3}$';then
         echo "Server: ${green}$server${reset} is ip address"
         serverIP="$server"
@@ -86,11 +137,15 @@ check(){
         serverIP="$(nslookup $server | perl -ne 'print $1 if/^Address\s*:\s*(\d+(\.\d+){3})$/')"
         echo "Get server ip by nslookup: ${green}$serverIP${reset}"
     fi
-    echo "-------------------------------------------"
-    localPort="$(python parseConfig.py local_port)"
     echo "Local port: ${green}$localPort${reset}"
-    serverFromCurl="$(curl -sx socks5://localhost:$localPort cip.cc | perl -ne 'print $1 if /^\s*IP\s*:\s*(\d+(\.\d+){3})\s*$/')"
-    echo "Server from curl: ${green}$serverFromCurl${reset}"
+    echo "-------------------------------------------"
+    echo "Try to get ip from curl by proxy: socks5://localhost:$localPort..."
+    serverFromCurl="$(curl -m 3 -sx socks5://localhost:$localPort cip.cc | perl -ne 'print $1 if /^\s*IP\s*:\s*(\d+(\.\d+){3})\s*$/' 2>/dev/null)"
+    if [ -z "$serverFromCurl" ];then
+        echo "${red}Cannot get ip from curl,proxy not turn on?${reset}"
+        return 1
+    fi
+    echo "Server ip from curl: ${green}$serverFromCurl${reset}"
     echo "-------------------------------------------"
     if [[ "$serverIP" == "$serverFromCurl" ]];then
         echo "${green}OK.${reset}"

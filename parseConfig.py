@@ -6,11 +6,12 @@ import json
 def main():
     parser = argparse.ArgumentParser(description="parse config.json file")
 
-    parser.add_argument("key",help="specify key in config.json")
+    parser.add_argument("config",help="specify config file")
+    parser.add_argument("key",help="specify key in config file")
 
     arg = parser.parse_args()
 
-    with open('config-local.json') as f:
+    with open(arg.config) as f:
         data = f.read()
     js = json.loads(data)
 
