@@ -86,7 +86,7 @@ modify(){
     if [ -z "$f" ];then
         return $exit_file_not_exist
     fi
-    editory=vi
+    editor=vi
     if command -v vim >/dev/null 2>&1;then
         editor=vim
     fi
