@@ -13,6 +13,16 @@ check(){
     fi
 }
 
+trap clean EXIT
+
+clean(){
+    echo "Clean..."
+    kill -9 $PID >/dev/null 2>&1
+    git config --global --unset-all http.proxy
+    git config --global --unset-all https.proxy
+    echo 'Clean Done'
+}
+
 usage(){
     cat<<-EOF
 	Usage: $(basename $0) CMD
@@ -32,16 +42,35 @@ installBrewLibsodium(){
         cd "$root"
     fi
     #install homebrew then install lisodium on MacOS
-    cp config-local.json.example config-local.json
-    vi config-local.json
-    python local.py -c config-local.json >/dev/null 2>&1&
-    PID=$!
+    if [ ! -e config-local.json ];then
+        cp config-local.json.example config-local.json
+    fi
+    while True;do
+        vi config-local.json
+        localPort="$(grep '\"local_port\"' config-local.json | grep -o '[0-9]\+')"
+        if [ -z "$localPort" ];then
+            echo "local_port is null"
+            continue
+        fi
+        python local.py -c config-local.json >/tmp/installLocal-local.py.log 2>&1&
+        PID=$!
+        curl -m 5 -x socks5://localhost:$localPort google.com >/dev/null 2>&1
+        if curl -m 20 -x socks5://localhost:$localPort google.com ;then
+            break
+        else
+            echo "proxy not work,config again..."
+            read aaa
+            kill -9 $PID >/dev/null 2>&1
+        fi
 
-    #check proxy
-    #proxyServer=$(grep '"server"' $Root/runtime/config.json | awk -F\" '{print $4}')
-    #curlProxy=$(curl -x socks5://localhost:1080 myip.ipip.net  | grep -oE '([0-9]+\.){3}[0-9]+')
+    done
 
-    export ALL_PROXY=socks5://localhost:1080
+    export ALL_PROXY=socks5://localhost:$localPort
+    export all_proxy=socks5://localhost:$localPort
+    export HTTP_PROXY=socks5://localhost:$localPort
+    export http_proxy=socks5://localhost:$localPort
+    git config --global http.proxy socks5://localhost:$localPort
+    git config --global https.proxy socks5://localhost:$localPort
     if ! command -v brew >/dev/null 2>&1;then
         echo "Install homebrew..."
         /usr/bin/ruby -e "$(curl --max-time 60 -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -58,7 +87,6 @@ installBrewLibsodium(){
         echo "install coreutils"
         brew install coreutils
     fi
-    kill -9 $PID
 }
 
 install(){
@@ -69,11 +97,8 @@ install(){
         exit 1
     fi
 
-
-
     case $(uname) in
         Linux)
-            #TODO all need root
             cmds=$(cat<<-EOF
 			sed -e "s|ROOT|$root|g" -e "s|PYTHON|$(which python)|g" ssrlocal.service > /etc/systemd/system/ssrlocal.service
 			systemctl daemon-reload
@@ -102,7 +127,6 @@ uninstall(){
     check
     case $(uname) in
         Linux)
-            #TODO all need root
             cmds=$(cat<<-EOF
 			systemctl stop ssrlocal
 			systemctl disable ssrlocal
