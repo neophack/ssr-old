@@ -17,9 +17,7 @@ trap clean EXIT
 
 clean(){
     echo "Clean..."
-    kill -9 $PID >/dev/null 2>&1
-    git config --global --unset-all http.proxy
-    git config --global --unset-all https.proxy
+    closeTmpProxy
     echo 'Clean Done'
 }
 
@@ -27,21 +25,33 @@ usage(){
     cat<<-EOF
 	Usage: $(basename $0) CMD
 	CMD:
-	    install
+	    full            full install (including: libsodium,brew,coreutils,service file,soft link)
+	    mini            minimal install (including: libsodium,service file,soft link)
+        coreutils       install coreutils (including: realpath)
 	    uninstall
 	EOF
     exit 1
 }
 
-installBrewLibsodium(){
+function installLibsodium(){
+    echo "installLibsodium()"
+    sodiumver=1.0.16
+    cd "$root"
     if ! ls /usr/local/lib/libsodium* >/dev/null 2>&1;then
-        cp libsodium-1.0.16.tar.gz /tmp
+        cp libsodium-${sodiumver}.tar.gz /tmp
         cd /tmp
-        tar xf libsodium-1.0.16.tar.gz && cd libsodium-1.0.16
+        tar xf libsodium-${sodiumver}.tar.gz && cd libsodium-${sodiumver}
         ./configure && make -j2 && sudo make install
-        cd "$root"
+        if [ "$(uname)" == "Linux" ];then
+            echo /usr/local/lib > /etc/ld.so.conf.d/usr_local_lib.conf
+            ldconfig
+        fi
     fi
-    #install homebrew then install lisodium on MacOS
+}
+function config(){
+    echo "config()"
+    cd "$root"
+    count=0
     if [ ! -e config-local.json ];then
         cp config-local.json.example config-local.json
     fi
@@ -52,25 +62,54 @@ installBrewLibsodium(){
             echo "local_port is null"
             continue
         fi
-        python local.py -c config-local.json >/tmp/installLocal-local.py.log 2>&1&
+        python local.py -c config-local.json >/tmp/tmpProxy.log 2>&1 &
         PID=$!
         curl -m 5 -x socks5://localhost:$localPort google.com >/dev/null 2>&1
         if curl -m 20 -x socks5://localhost:$localPort google.com ;then
+            echo "proxy is working."
             break
         else
+            count=$((count+1))
+            if (($count==3));then
+                echo "proxy not work,skip..."
+                break
+            fi
             echo "proxy not work,config again..."
-            read aaa
             kill -9 $PID >/dev/null 2>&1
         fi
-
     done
+}
 
+function tmpProxy(){
+    echo "tmpProxy()"
+    cd "$root"
     export ALL_PROXY=socks5://localhost:$localPort
     export all_proxy=socks5://localhost:$localPort
     export HTTP_PROXY=socks5://localhost:$localPort
     export http_proxy=socks5://localhost:$localPort
     git config --global http.proxy socks5://localhost:$localPort
     git config --global https.proxy socks5://localhost:$localPort
+}
+
+function closeTmpProxy(){
+    echo "closeTmpProxy()"
+    cd "$root"
+    if [ -n "$PID" ];then
+        kill -9 $PID >/dev/null 2>&1
+        PID=
+    fi
+    unset ALL_PROXY
+    unset all_proxy
+    unset HTTP_PROXY
+    unset http_proxy
+    git config --global --unset-all http.proxy
+    git config --global --unset-all https.proxy
+}
+
+function installBrew(){
+    echo "installBrew()"
+    cd "$root"
+    tmpProxy
     if ! command -v brew >/dev/null 2>&1;then
         echo "Install homebrew..."
         /usr/bin/ruby -e "$(curl --max-time 60 -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -81,7 +120,7 @@ installBrewLibsodium(){
     # fi
     if ! command -v brew >/dev/null 2>&1;then
         echo "Install homebrew failed."
-        exit 1
+        return 1
     fi
     if ! brew list coreutils >/dev/null 2>&1;then
         echo "install coreutils"
@@ -89,14 +128,9 @@ installBrewLibsodium(){
     fi
 }
 
-install(){
-    check
-
-    if ! command -v python >/dev/null 2>&1;then
-        echo "need python"
-        exit 1
-    fi
-
+function installService(){
+    echo "installService()"
+    cd "$root"
     case $(uname) in
         Linux)
             cmds=$(cat<<-EOF
@@ -104,26 +138,33 @@ install(){
 			systemctl daemon-reload
 			systemctl enable ssrlocal
 			systemctl start ssrlocal
-			echo "run libsodium.sh to run libsodium if needed."
-			ln -sf $root/ssrlocal $DEST_BIN_DIR/ssrlocal
-			ln -sf $root/ssrp $DEST_BIN_DIR/ssrp
 			EOF
 )
             sudo sh -c "$cmds"
             ;;
         Darwin)
-            installBrewLibsodium
-            ln -sf $root/ssrlocal $DEST_BIN_DIR/ssrlocal
-            ln -sf $root/ssrp $DEST_BIN_DIR/ssrp
             if [ ! -d $home/Library/LaunchAgents ];then
                 mkdir -p $home/Library/LaunchAgents
             fi
             sed -e "s|ROOT|$root|g" ssrlocal.plist > $home/Library/LaunchAgents/ssrlocal.plist
             ;;
     esac
+
+}
+
+function installSoftLink(){
+    echo "installSoftLink()"
+    cd "$root"
+    cmds=$(cat<<-EOF
+		ln -sf $root/ssrlocal $DEST_BIN_DIR/ssrlocal
+		ln -sf $root/ssrp $DEST_BIN_DIR/ssrp
+		EOF
+)
+    sudo sh -c "$cmds"
 }
 
 uninstall(){
+    echo "uninstall()"
     check
     case $(uname) in
         Linux)
@@ -147,13 +188,23 @@ uninstall(){
 cmd=$1
 
 case $cmd in
-    install)
-        install
+    full)
+        actions=(installLibsodium config installBrew installService installSoftLink)
         ;;
     uninstall)
-        uninstall
+        actions=(uninstall)
+        ;;
+    mini)
+        actions=(installLibsodium config installService installSoftLink)
+        ;;
+    coreutils)
+        actions=(installLibsodium config installBrew)
         ;;
     *)
         usage
         ;;
 esac
+
+for action in "${actions[@]}";do
+    $action
+done

@@ -1,5 +1,9 @@
 #!/bin/bash
-root="$(cd $(dirname $(realpath ${BASH_SOURCE})) && pwd)"
+rpath="$(readlink $BASH_SOURCE)"
+if [ -z "$rpath" ];then
+    rpath=$BASH_SOURCE
+fi
+root="$(cd $(dirname $rpath) && pwd)"
 cd "$root"
 
 user=${SUDO_USER:-$(whoami)}
