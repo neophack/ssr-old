@@ -55,7 +55,7 @@ function config(){
     if [ ! -e config-local.json ];then
         cp config-local.json.example config-local.json
     fi
-    while True;do
+    while true;do
         vi config-local.json
         localPort="$(grep '\"local_port\"' config-local.json | grep -o '[0-9]\+')"
         if [ -z "$localPort" ];then
@@ -107,6 +107,9 @@ function closeTmpProxy(){
 }
 
 function installBrew(){
+    if [ "$(uname)" != "Darwin" ];then
+        return
+    fi
     echo "installBrew()"
     cd "$root"
     tmpProxy
