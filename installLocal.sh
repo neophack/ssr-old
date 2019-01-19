@@ -11,8 +11,13 @@ check(){
         echo "Dn't need run as root"
         exit 1
     fi
+    if ! command -v python >/dev/null 2>&1;then
+        echo "Need python"
+        exit 1
+    fi
 }
 
+check
 
 clean(){
     echo "Clean..."
@@ -179,7 +184,6 @@ function installSoftLink(){
 
 uninstall(){
     echo "uninstall()"
-    check
     case $(uname) in
         Linux)
             cmds=$(cat<<-EOF
