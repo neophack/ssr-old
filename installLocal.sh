@@ -13,7 +13,6 @@ check(){
     fi
 }
 
-trap clean EXIT
 
 clean(){
     echo "Clean..."
@@ -25,9 +24,15 @@ usage(){
     cat<<-EOF
 	Usage: $(basename $0) CMD
 	CMD:
-	    full            full install (including: libsodium,brew,coreutils,service file,soft link)
-	    mini            minimal install (including: libsodium,service file,soft link)
-        coreutils       install coreutils (including: realpath)
+	    full        full install
+	                (including: libsodium,brew(Mac only),coreutils(Mac only),service file,soft link)
+
+	    mini        minimal install
+	                (including: libsodium,service file,soft link)
+
+	    coreutils   install coreutils
+	                (including: realpath)
+
 	    uninstall
 	EOF
     exit 1
@@ -43,8 +48,14 @@ function installLibsodium(){
         tar xf libsodium-${sodiumver}.tar.gz && cd libsodium-${sodiumver}
         ./configure && make -j2 && sudo make install
         if [ "$(uname)" == "Linux" ];then
-            echo /usr/local/lib > /etc/ld.so.conf.d/usr_local_lib.conf
-            ldconfig
+            sudo sh -c 'echo /usr/local/lib > /etc/ld.so.conf.d/usr_local_lib.conf'
+            sudo ldconfig
+            cmds=$(cat<<-EOF
+			sh -c 'echo /usr/local/lib > /etc/ld.so.conf.d/usr_local_lib.conf'
+			ldconfig
+			EOF
+)
+            sudo sh -c "$cmds"
         fi
     fi
 }
@@ -208,6 +219,7 @@ case $cmd in
         ;;
 esac
 
+trap clean EXIT
 for action in "${actions[@]}";do
     $action
 done
