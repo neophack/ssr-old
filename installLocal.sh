@@ -71,6 +71,10 @@ function config(){
     if [ ! -e config-local.json ];then
         cp config-local.json.example config-local.json
     fi
+    if [[ "$uname" == Linux ]];then
+        vi config-local.json
+        return 0
+    fi
     while true;do
         vi config-local.json
         localPort="$(grep '\"local_port\"' config-local.json | grep -o '[0-9]\+')"
@@ -96,6 +100,7 @@ function config(){
     done
 }
 
+#for install homebrew related
 function tmpProxy(){
     echo "tmpProxy()"
     cd "$root"
