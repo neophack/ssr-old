@@ -1,14 +1,14 @@
 {
     "server": "",
     "server_ipv6": "::",
-    "server_port": 8500,
-    "password": "8500",
+    "server_port": 8700,
+    "password": "8700",
 
     "local_address": "127.0.0.1",
     "local_port": 1080,
 
     "method": "chacha20",
-    "protocol": "auth_aes128_md5",
+    "protocol": "auth_aes128_sha1",
     "protocol_param": "",
     "obfs": "tls1.2_ticket_auth_compatible",
     "obfs_param": "",
