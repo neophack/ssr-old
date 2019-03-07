@@ -11,7 +11,7 @@
     "local_port": 1082,
 
     "method": "chacha20",
-    "protocol": "auth_aes128_md5",
+    "protocol": "auth_aes128_sha1",
     "protocol_param": "",
     "obfs": "tls1.2_ticket_auth_compatible",
     "obfs_param": "",
