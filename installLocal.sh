@@ -84,17 +84,18 @@ function config(){
         fi
         python local.py -c config-local.json >/tmp/tmpProxy.log 2>&1 &
         PID=$!
-        curl -m 5 -x socks5://localhost:$localPort google.com >/dev/null 2>&1
-        if curl -m 20 -x socks5://localhost:$localPort google.com ;then
-            echo "proxy is working."
+        echo "Check proxy ..."
+        sleep 3
+        if curl -m 20 -x socks5://localhost:$localPort google.com >/dev/null 2>&1;then
+            echo "Proxy is working."
             break
         else
             count=$((count+1))
             if (($count==3));then
-                echo "proxy not work,skip..."
+                echo "Proxy not work,skip..."
                 break
             fi
-            echo "proxy not work,config again..."
+            echo "Proxy not work,config again..."
             kill -9 $PID >/dev/null 2>&1
         fi
     done
