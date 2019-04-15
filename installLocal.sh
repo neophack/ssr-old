@@ -4,6 +4,8 @@ cd "$root"
 
 user=${SUDO_USER:-$(whoami)}
 home=$(eval echo ~$user)
+red=$(tput setaf 2)
+reset=$(tput sgr0)
 
 DEST_BIN_DIR=/usr/local/bin
 check(){
@@ -87,7 +89,7 @@ function config(){
         echo "Check proxy ..."
         sleep 3
         if curl -m 20 -x socks5://localhost:$localPort google.com >/dev/null 2>&1;then
-            echo "Proxy is working."
+            echo "${red}Proxy is working.${reset}"
             break
         else
             count=$((count+1))
